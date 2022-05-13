@@ -1,7 +1,7 @@
-use hyper_tls::{HttpsConnector};
-use hyper::{Body, Method, Request, StatusCode, Uri};
-use hyper::client::{Client, HttpConnector};
 use hyper::body::Buf;
+use hyper::client::{Client, HttpConnector};
+use hyper::{Body, Method, Request, StatusCode, Uri};
+use hyper_tls::HttpsConnector;
 
 use std::str::FromStr;
 
@@ -12,17 +12,16 @@ pub type WebhookResult<Type> = std::result::Result<Type, Box<dyn std::error::Err
 /// A Client that sends webhooks for discord.
 pub struct WebhookClient {
     client: Client<HttpsConnector<HttpConnector>>,
-    url: String
+    url: String,
 }
 
 impl WebhookClient {
-
     pub fn new(url: &str) -> Self {
         let https_connector = HttpsConnector::new();
         let client = Client::builder().build::<_, hyper::Body>(https_connector);
         Self {
             client,
-            url: url.to_owned()
+            url: url.to_owned(),
         }
     }
 
@@ -34,7 +33,9 @@ impl WebhookClient {
     ///     .username("username")).await?;
     /// ```
     pub async fn send<Func>(&self, function: Func) -> WebhookResult<bool>
-    where Func: Fn(&mut Message) -> &mut Message {
+    where
+        Func: Fn(&mut Message) -> &mut Message,
+    {
         let mut message = Message::new();
         function(&mut message);
         let result = self.send_message(&message).await?;
@@ -61,5 +62,4 @@ impl WebhookClient {
 
         Ok(webhook)
     }
-
 }

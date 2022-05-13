@@ -12,7 +12,7 @@ pub struct Webhook {
     pub name: Option<String>,
     pub avatar: Option<String>,
     pub token: String,
-    pub application_id: Option<Snowflake>
+    pub application_id: Option<Snowflake>,
 }
 
 #[derive(Serialize, Debug)]
@@ -22,11 +22,10 @@ pub struct Message {
     pub avatar_url: Option<String>,
     pub tts: bool,
     pub embeds: Vec<Embed>,
-    pub allow_mentions: Option<AllowedMentions>
+    pub allow_mentions: Option<AllowedMentions>,
 }
 
 impl Message {
-
     pub fn new() -> Self {
         Self {
             content: None,
@@ -34,7 +33,7 @@ impl Message {
             avatar_url: None,
             tts: false,
             embeds: vec![],
-            allow_mentions: None
+            allow_mentions: None,
         }
     }
 
@@ -59,7 +58,9 @@ impl Message {
     }
 
     pub fn embed<Func>(&mut self, func: Func) -> &mut Self
-    where Func: Fn(&mut Embed) -> &mut Embed {
+    where
+        Func: Fn(&mut Embed) -> &mut Embed,
+    {
         let mut embed = Embed::new();
         func(&mut embed);
         self.embeds.push(embed);
@@ -67,15 +68,22 @@ impl Message {
         self
     }
 
-    pub fn allow_mentions(&mut self,
-                          parse: Option<Vec<AllowedMention>>,
-                          roles: Option<Vec<Snowflake>>,
-                          users: Option<Vec<Snowflake>>,
-                          replied_user: bool) -> &mut Self {
+    pub fn allow_mentions(
+        &mut self,
+        parse: Option<Vec<AllowedMention>>,
+        roles: Option<Vec<Snowflake>>,
+        users: Option<Vec<Snowflake>>,
+        replied_user: bool,
+    ) -> &mut Self {
         self.allow_mentions = Some(AllowedMentions::new(parse, roles, users, replied_user));
         self
     }
+}
 
+impl Default for Message {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Serialize, Debug)]
@@ -93,11 +101,10 @@ pub struct Embed {
     pub thumbnail: Option<EmbedThumbnail>,
     pub provider: Option<EmbedProvider>,
     pub author: Option<EmbedAuthor>,
-    pub fields: Vec<EmbedField>
+    pub fields: Vec<EmbedField>,
 }
 
 impl Embed {
-
     pub fn new() -> Self {
         Self {
             title: None,
@@ -112,7 +119,7 @@ impl Embed {
             thumbnail: None,
             provider: None,
             author: None,
-            fields: vec![]
+            fields: vec![],
         }
     }
 
@@ -166,7 +173,12 @@ impl Embed {
         self
     }
 
-    pub fn author(&mut self, name: &str, url: Option<String>, icon_url: Option<String>) -> &mut Self {
+    pub fn author(
+        &mut self,
+        name: &str,
+        url: Option<String>,
+        icon_url: Option<String>,
+    ) -> &mut Self {
         self.author = Some(EmbedAuthor::new(name, url, icon_url));
         self
     }
@@ -179,14 +191,19 @@ impl Embed {
         self.fields.push(EmbedField::new(name, value, inline));
         self
     }
+}
 
+impl Default for Embed {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Serialize, Debug)]
 pub struct EmbedField {
     pub name: String,
     pub value: String,
-    pub inline: bool
+    pub inline: bool,
 }
 
 impl EmbedField {
@@ -194,7 +211,7 @@ impl EmbedField {
         Self {
             name: name.to_owned(),
             value: value.to_owned(),
-            inline
+            inline,
         }
     }
 }
@@ -226,7 +243,7 @@ pub struct EmbedUrlSource {
 impl EmbedUrlSource {
     pub fn new(url: &str) -> Self {
         Self {
-            url: url.to_owned()
+            url: url.to_owned(),
         }
     }
 }
@@ -234,14 +251,14 @@ impl EmbedUrlSource {
 #[derive(Serialize, Debug)]
 pub struct EmbedProvider {
     pub name: String,
-    pub url: String
+    pub url: String,
 }
 
 impl EmbedProvider {
     pub fn new(name: &str, url: &str) -> Self {
         Self {
             name: name.to_owned(),
-            url: url.to_owned()
+            url: url.to_owned(),
         }
     }
 }
@@ -250,7 +267,7 @@ impl EmbedProvider {
 pub struct EmbedAuthor {
     pub name: String,
     pub url: Option<String>,
-    pub icon_url: Option<String>
+    pub icon_url: Option<String>,
 }
 
 impl EmbedAuthor {
@@ -258,7 +275,7 @@ impl EmbedAuthor {
         Self {
             name: name.to_owned(),
             url,
-            icon_url
+            icon_url,
         }
     }
 }
@@ -266,14 +283,14 @@ impl EmbedAuthor {
 pub enum AllowedMention {
     RoleMention,
     UserMention,
-    EveryoneMention
+    EveryoneMention,
 }
 
 fn resolve_allowed_mention_name(allowed_mention: AllowedMention) -> String {
     match allowed_mention {
         AllowedMention::RoleMention => "roles".to_string(),
         AllowedMention::UserMention => "users".to_string(),
-        AllowedMention::EveryoneMention => "everyone".to_string()
+        AllowedMention::EveryoneMention => "everyone".to_string(),
     }
 }
 
@@ -282,26 +299,28 @@ pub struct AllowedMentions {
     pub parse: Option<Vec<String>>,
     pub roles: Option<Vec<Snowflake>>,
     pub users: Option<Vec<Snowflake>>,
-    pub replied_user: bool
+    pub replied_user: bool,
 }
 
 impl AllowedMentions {
-    pub fn new(parse: Option<Vec<AllowedMention>>,
-               roles: Option<Vec<Snowflake>>,
-               users: Option<Vec<Snowflake>>,
-               replied_user: bool) -> Self {
+    pub fn new(
+        parse: Option<Vec<AllowedMention>>,
+        roles: Option<Vec<Snowflake>>,
+        users: Option<Vec<Snowflake>>,
+        replied_user: bool,
+    ) -> Self {
         let mut parse_strings: Vec<String> = vec![];
-        if parse.is_some() {
-            parse.unwrap().into_iter().for_each(|x| {
-                parse_strings.push(resolve_allowed_mention_name(x))
-            })
+        if let Some(parse) = parse {
+            parse
+                .into_iter()
+                .for_each(|x| parse_strings.push(resolve_allowed_mention_name(x)))
         }
 
         Self {
             parse: Some(parse_strings),
             roles,
             users,
-            replied_user
+            replied_user,
         }
     }
 }
