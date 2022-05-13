@@ -25,25 +25,7 @@ impl WebhookClient {
         }
     }
 
-    /// Example
-    /// ```rust
-    /// let client = WebhookClient::new("URL");
-    /// client.send(|message| message
-    ///     .content("content")
-    ///     .username("username")).await?;
-    /// ```
-    pub async fn send<Func>(&self, function: Func) -> WebhookResult<bool>
-    where
-        Func: Fn(&mut Message) -> &mut Message,
-    {
-        let mut message = Message::new();
-        function(&mut message);
-        let result = self.send_message(&message).await?;
-
-        Ok(result)
-    }
-
-    pub async fn send_message(&self, message: &Message) -> WebhookResult<bool> {
+    pub async fn send(&self, message: &Message) -> WebhookResult<bool> {
         let body = serde_json::to_string(message)?;
         let request = Request::builder()
             .method(Method::POST)

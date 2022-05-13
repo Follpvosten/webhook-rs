@@ -17,16 +17,18 @@ pub struct Webhook {
 
 #[derive(Serialize, Debug)]
 pub struct Message {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
     pub username: Option<String>,
     pub avatar_url: Option<String>,
     pub tts: bool,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub embeds: Vec<Embed>,
     pub allow_mentions: Option<AllowedMentions>,
 }
 
 impl Message {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             content: None,
             username: None,
@@ -37,21 +39,34 @@ impl Message {
         }
     }
 
+    pub fn with_content(content: impl Into<String>) -> Self {
+        Self {
+            content: Some(content.into()),
+            ..Self::new()
+        }
+    }
+    pub fn with_embed(embed: Embed) -> Self {
+        Self::with_embeds(vec![embed])
+    }
+    pub fn with_embeds(embeds: Vec<Embed>) -> Self {
+        Self {
+            embeds,
+            ..Self::new()
+        }
+    }
+
     pub fn content(&mut self, content: &str) -> &mut Self {
         self.content = Some(content.to_owned());
         self
     }
-
     pub fn username(&mut self, username: &str) -> &mut Self {
         self.username = Some(username.to_owned());
         self
     }
-
     pub fn avatar_url(&mut self, avatar_url: &str) -> &mut Self {
         self.avatar_url = Some(avatar_url.to_owned());
         self
     }
-
     pub fn tts(&mut self, tts: bool) -> &mut Self {
         self.tts = tts;
         self
@@ -78,11 +93,16 @@ impl Message {
         self.allow_mentions = Some(AllowedMentions::new(parse, roles, users, replied_user));
         self
     }
-}
 
-impl Default for Message {
-    fn default() -> Self {
-        Self::new()
+    pub fn take(&mut self) -> Self {
+        Self {
+            content: self.content.take(),
+            username: self.username.take(),
+            avatar_url: self.avatar_url.take(),
+            tts: self.tts,
+            embeds: std::mem::take(&mut self.embeds),
+            allow_mentions: self.allow_mentions.take(),
+        }
     }
 }
 
